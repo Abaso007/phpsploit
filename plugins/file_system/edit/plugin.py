@@ -23,6 +23,7 @@ AUTHOR:
     nil0x42 <http://goo.gl/kb2wf>
 """
 
+
 import sys
 import base64
 
@@ -47,7 +48,7 @@ file = Path(filename=path_filename)
 
 if reader_response == "NEW_FILE":
     file_mtime = None
-    print("[*] Creating new file: %s" % absolute_path)
+    print(f"[*] Creating new file: {absolute_path}")
 else:
     # writting bytes() obj to file in binary mode
     file_mtime, file_data = reader_response
@@ -70,4 +71,4 @@ writer_response = writer.send()
 if writer_response == "MTIME_FAILED":
     print("[-] %s: Could not set MTIME to %r" % (plugin.argv[0], file_mtime))
 
-print("[*] File correctly written at %s" % absolute_path)
+print(f"[*] File correctly written at {absolute_path}")

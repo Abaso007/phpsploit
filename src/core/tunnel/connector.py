@@ -38,14 +38,14 @@ class Request:
         """close the virtual link, actually, just return the
         link closed's string
         """
-        print('[*] Connection to %s closed.' % self.socket.hostname)
+        print(f'[*] Connection to {self.socket.hostname} closed.')
         return True
 
     @staticmethod
     def _get_vars(raw_response):
         """Retrieve and format connector's variables
         """
-        result = list()
+        result = []
         for name, value in raw_response.items():
             value = str(value).strip()
             result.append((name, value))
@@ -59,9 +59,11 @@ class Request:
         # return first argument which is not empty
         def choose(options, default=''):
             for choice in options:
-                if choice in raw_vars:
-                    if raw_vars[choice].strip() not in ["", "None"]:
-                        return raw_vars[choice]
+                if choice in raw_vars and raw_vars[choice].strip() not in [
+                    "",
+                    "None",
+                ]:
+                    return raw_vars[choice]
             return default
 
         # get env from connector's returned array
@@ -69,14 +71,14 @@ class Request:
 
         env['CLIENT_ADDR'] = choose(['REMOTE_ADDR', 'REMOTE_HOST'])
         if ":" in env['CLIENT_ADDR']:  # enclose with brackets if ipv6
-            env["CLIENT_ADDR"] = "[%s]" % env["CLIENT_ADDR"]
+            env["CLIENT_ADDR"] = f'[{env["CLIENT_ADDR"]}]'
 
         env['HOST'] = choose(['SERVER_NAME', 'HTTP_HOST'],
                              self.socket.hostname)
 
         env['ADDR'] = choose(['SERVER_ADDR', 'LOCAL_ADDR'], env['HOST'])
         if ":" in env['ADDR']:  # enclose with brackets if ipv6
-            env["ADDR"] = "[%s]" % env["ADDR"]
+            env["ADDR"] = f'[{env["ADDR"]}]'
 
         env["HTTP_SOFTWARE"] = choose(['SERVER_SOFTWARE'], 'unknow software')
 
@@ -96,7 +98,7 @@ class Request:
             else:
                 if path[0] == '/':
                     sep = '/'
-                path = sep.join(path.split(sep)[0:-1])
+                path = sep.join(path.split(sep)[:-1])
             env['HOME'] = path
 
         env['WRITEABLE_WEBDIR'] = choose(['WRITEABLE_WEBDIR'])
@@ -109,10 +111,7 @@ class Request:
 
         env["PLATFORM"] = choose(['OS', 'PHP_OS'], 'unknow').split()[0].lower()
         if env["PLATFORM"] == "unknow":
-            if env["PATH_SEP"] == "\\":
-                env["PLATFORM"] = "windows"
-            else:
-                env["PLATFORM"] = "unix"
+            env["PLATFORM"] = "windows" if env["PATH_SEP"] == "\\" else "unix"
         env["PLATFORM"] = env["PLATFORM"].strip().lower()
 
         env["PWD"] = env["HOME"]

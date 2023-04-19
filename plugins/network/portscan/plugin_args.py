@@ -5,11 +5,8 @@ import ui.output
 
 
 def help_format_network_scan(prog):
-    kwargs = dict()
-    kwargs['width'] = ui.output.columns()
-    kwargs['max_help_position'] = 34
-    format = argparse.HelpFormatter(prog, **kwargs)
-    return (format)
+    kwargs = {'width': ui.output.columns(), 'max_help_position': 34}
+    return argparse.HelpFormatter(prog, **kwargs)
 
 
 def parse(args):
@@ -26,11 +23,7 @@ def parse(args):
     return options
 
 def parse_port(input):
-    if input.count('-') == 1:
-        data = input.split('-')
-    else:
-        data = [input, input]
-
+    data = input.split('-') if input.count('-') == 1 else [input, input]
     try:
         data = [int(x) for x in data]
     except:

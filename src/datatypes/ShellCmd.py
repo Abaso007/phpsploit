@@ -17,7 +17,7 @@ class ShellCmd(Code("sh")):
         try:
             parse(executable)
         except SyntaxError:
-            raise ValueError("«%s» is not a valid shell command" % executable)
+            raise ValueError(f"«{executable}» is not a valid shell command")
 
         # Value is OK, now we maintain original.
         return str.__new__(cls, executable)

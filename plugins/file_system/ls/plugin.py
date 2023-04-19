@@ -59,7 +59,7 @@ status = 0
 def abort(msg):
     global status
     status |= 1
-    print("[-] %s: %s" % (plugin.name, msg))
+    print(f"[-] {plugin.name}: {msg}")
 
 for path in plugin.argv[1:] or [environ['PWD']]:
 
@@ -95,9 +95,9 @@ for path in plugin.argv[1:] or [environ['PWD']]:
     rows.insert(1, [("-" * len(elem)) for elem in rows_hdr])
 
     # format and display output title
-    header = "Listing: %s" % target
+    header = f"Listing: {target}"
     if regex:
-        header += " (matching r'%s')" % colorize("%White", regex)
+        header += f""" (matching r'{colorize("%White", regex)}')"""
     print("\n" + header + "\n" + ("=" * len(decolorize(header))) + "\n")
 
     widths = [max(map(len, col)) for col in zip(*rows)]

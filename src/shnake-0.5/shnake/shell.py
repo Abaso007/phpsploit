@@ -148,7 +148,7 @@ class Shell(cmd.Cmd):
                 import readline
                 self.old_completer = readline.get_completer()
                 readline.set_completer(self.complete)
-                readline.parse_and_bind(self.completekey+": complete")
+                readline.parse_and_bind(f"{self.completekey}: complete")
             except ImportError:
                 pass
 
@@ -291,7 +291,7 @@ class Shell(cmd.Cmd):
 
         # get command function
         try:
-            cmdrun = getattr(self, "do_" + argv[0])
+            cmdrun = getattr(self, f"do_{argv[0]}")
         except AttributeError:
             cmdrun = self.default
 
@@ -320,7 +320,7 @@ class Shell(cmd.Cmd):
         """
         # try to call concerned except_* hooks in the order
         for cls in exception.__class__.mro()[:-1]:
-            hook = 'except_' + cls.__name__
+            hook = f'except_{cls.__name__}'
             if hasattr(self, hook):
                 exception = getattr(self, hook)(exception)
                 break
@@ -397,16 +397,14 @@ class Shell(cmd.Cmd):
             # complete_*() method, or fallback to completedefault().
             if begidx > 0:
                 try:
-                    compfunc = getattr(self, 'complete_'+name)
+                    compfunc = getattr(self, f'complete_{name}')
                 except AttributeError:
                     compfunc = self.completedefault
-            # if the cmd name is being typed, completion must suggest the
-            # available commands list, aka completenames()
             else:
                 compfunc = self.completenames
             self.completion_matches = compfunc(text, line, begidx, endidx)
         try:
-            return self.completion_matches[state] + ' '
+            return f'{self.completion_matches[state]} '
         except IndexError:
             return None
 

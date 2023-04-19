@@ -19,19 +19,13 @@ def getcwd() -> str:
 
 def isabs(path: str) -> bool:
     """Test whether a path is absolute"""
-    if path and path[0] in '/\\':
-        return True
-    if _WINPATH_REGEX.match(path):
-        return True
-    return False
+    return True if path and path[0] in '/\\' else bool(_WINPATH_REGEX.match(path))
 
 
 def abspath(path: str) -> str:
     """Return an absolute path."""
     if not isabs(path):
-        sep = '/'
-        if '/' not in path and '\\' in path:
-            sep = '\\'
+        sep = '\\' if '/' not in path and '\\' in path else '/'
         elems = path.split(sep)
         old_path = _split_path(session.Env.PWD)
         path = old_path['root']
@@ -66,9 +60,7 @@ def splitdrive(path: str) -> tuple:
 # Private function:
 def _to_absolute_path(path: str) -> str:
     """Return the absolute version of given path string"""
-    if isabs(path):
-        return path
-    return abspath(path)
+    return path if isabs(path) else abspath(path)
 
 
 # Private function:
@@ -80,19 +72,17 @@ def _split_path(path: str) -> dict:
         platform = 'nix'
         root = '/'
         sep = '/'
-    # if win physical path (C:\)
     elif re.match(_WINPATH_REGEX, path):
         platform = 'win'
         root = path[:3]
         sep = '\\'
-    # if win network path (\\1.1.1.1)
     elif path.startswith('\\'):
         platform = 'win'
         root = '\\\\'
         sep = '\\'
         path = root + path.lstrip('\\')
     else:
-        raise ValueError("%s: Couldn't parse non-standard path" % path)
+        raise ValueError(f"{path}: Couldn't parse non-standard path")
     return {"platform": platform,
             "root": root,
             "elems": path[len(root):].split(sep),

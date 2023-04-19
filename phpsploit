@@ -66,11 +66,8 @@ except KeyboardInterrupt:
 
 def parser_help_formatter(prog):
     """argparser help output formatter"""
-    kwargs = dict()
-    kwargs['width'] = ui.output.columns()
-    kwargs['max_help_position'] = 34
-    fmt = argparse.HelpFormatter(prog, **kwargs)
-    return fmt
+    kwargs = {'width': ui.output.columns(), 'max_help_position': 34}
+    return argparse.HelpFormatter(prog, **kwargs)
 
 
 def build_parser():
@@ -106,14 +103,12 @@ def run_process(cmd):
     """get output of given shell command"""
     child = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.DEVNULL)
     streamdata = child.communicate()[0]
-    if child.returncode != 0:
-        return ""
-    return streamdata.decode("utf-8").strip()
+    return "" if child.returncode != 0 else streamdata.decode("utf-8").strip()
 
 
 def rand_quote():
     """return a random funny quote"""
-    msg_list = Path(src.BASEDIR + "data/quotes.lst").readlines()
+    msg_list = Path(f"{src.BASEDIR}data/quotes.lst").readlines()
     return random.choice(msg_list).strip()
 
 
@@ -143,7 +138,7 @@ def main():
 
     if opt['version']:
         git_ver = run_process(['git', '-C', src.BASEDIR, 'describe'])
-        version = (git_ver + " (git)") if git_ver else VERSION
+        version = f"{git_ver} (git)" if git_ver else VERSION
         print("PhpSploit Framework, version %s\n"
               "License GPLv3+: GNU GPL version 3 or later"
               " <http://gnu.org/licenses/gpl.html>\n\n"
@@ -156,12 +151,10 @@ def main():
     # Enable stdout wrapper
     sys.stdout = ui.output.Wrapper(backlog=True)
 
-    # determine if the interface would run in interactive mode
-    interactive = False
-    if ui.input.isatty():
-        if (not opt['eval'] and not opt['source']) or opt['interactive']:
-            interactive = True
-
+    interactive = bool(
+        ui.input.isatty()
+        and ((not opt['eval'] and not opt['source']) or opt['interactive'])
+    )
     # make this variable accessible from phpsploit core
     ui.interface.interactive = interactive
 
@@ -169,14 +162,14 @@ def main():
     iface = ui.interface.Shell()
 
     if opt['config'] is None:
-        opt['config'] = core.USERDIR + "config"
+        opt['config'] = f"{core.USERDIR}config"
 
-    if cmdrun(iface, "source -e '%s'" % opt['config'], show_err=True) != 0:
+    if cmdrun(iface, f"source -e '{opt['config']}'", show_err=True) != 0:
         print()
         parser.error("%r: config file contains invalid commands."
                      % opt['config'])
     elif interactive and ui.output.isatty():
-        logo = Path(src.BASEDIR + "data/logo.ascii").read()
+        logo = Path(f"{src.BASEDIR}data/logo.ascii").read()
         cmdrun(iface, "lrun clear")
         print(logo)
         print(colorize("%DimBold", "# Stealth & persistent C2 framework via ", "%White", "evil PHP oneliner"))
@@ -184,25 +177,19 @@ def main():
 
     iface.init()
 
-    if opt['load']:
-        if cmdrun(iface, "session load '%s'" % opt['load']) != 0:
-            print()
-            parser.error("%r: invalid session file." % opt['load'])
+    if opt['load'] and cmdrun(iface, f"session load '{opt['load']}'") != 0:
+        print()
+        parser.error("%r: invalid session file." % opt['load'])
 
-    if opt['target']:
-        if cmdrun(iface, "set TARGET '%s'" % opt['target']) != 0:
-            print()
-            parser.error("%r: couldn't set target url." % opt['target'])
+    if opt['target'] and cmdrun(iface, f"set TARGET '{opt['target']}'") != 0:
+        print()
+        parser.error("%r: couldn't set target url." % opt['target'])
 
-    if opt['source']:
-        if cmdrun(iface, "source '%s'" % opt['source']) != 0:
-            print()
-            parser.error("%r: couldn't read source file." % opt['source'])
+    if opt['source'] and cmdrun(iface, f"source '{opt['source']}'") != 0:
+        print()
+        parser.error("%r: couldn't read source file." % opt['source'])
 
-    retval = 0
-    if opt['eval']:
-        retval = cmdrun(iface, opt['eval'])
-
+    retval = cmdrun(iface, opt['eval']) if opt['eval'] else 0
     if interactive or not ui.input.isatty():
         iface.cmdloop()
         if ui.output.isatty():
@@ -220,5 +207,5 @@ else:
         test_dir = os.path.join(os.path.dirname(launcher), "test/")
         caller = os.path.abspath(sys.argv[0])
         if not caller.startswith(test_dir):
-            sys.exit('[-] Phpsploit must be run from launcher: ' + launcher)
+            sys.exit(f'[-] Phpsploit must be run from launcher: {launcher}')
     check_import()

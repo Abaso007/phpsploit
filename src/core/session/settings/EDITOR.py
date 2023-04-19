@@ -22,7 +22,4 @@ def validator(value):
 
 
 def default_value():
-    raw_value = "vi"
-    if "EDITOR" in os.environ:
-        raw_value = os.environ["EDITOR"]
-    return raw_value
+    return os.environ.get("EDITOR", "vi")

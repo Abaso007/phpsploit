@@ -30,13 +30,13 @@ def println(name, content):
 
 
 def device_repr(devno):
-    return hex(devno)[2:] + 'h/' + str(devno) + 'd'
+    return f'{hex(devno)[2:]}h/{str(devno)}d'
 
 
 def mode_perms(mode):
     octal = oct(stat.S_IMODE(mode))[2:].zfill(4)
     literal = stat.filemode(mode)
-    return "%s (%s)" % (octal, literal)
+    return f"{octal} ({literal})"
 
 
 def mode_filetype(mode):
@@ -51,10 +51,9 @@ def mode_filetype(mode):
             stat.S_ISSOCK: "socket",
             stat.S_ISDOOR: "door",
             }
-    for test_func, name in dic.items():
-        if test_func(mode):
-            return name
-    return "???"
+    return next(
+        (name for test_func, name in dic.items() if test_func(mode)), "???"
+    )
 
 
 def is_device(mode):
@@ -65,7 +64,7 @@ def is_device(mode):
 def dev_name(rdev):
     major = ((rdev >> 8) & 0xfff) | ((rdev >> 32) & ~0xfff)
     minor = (rdev & 0xff) | ((rdev >> 12) & ~0xff)
-    return "%s,%s" % (major, minor)
+    return f"{major},{minor}"
     
 
 if len(plugin.argv) == 2:
@@ -79,9 +78,12 @@ else:
 
 absolute_path = server.path.abspath(relative_path)
 # FIX: diferenciate /bin/ from /bin for interpreting symlinks on linux
-if not environ['PLATFORM'].startswith("win"):
-    if not absolute_path.endswith("/") and relative_path.endswith("/"):
-        absolute_path += "/"
+if (
+    not environ['PLATFORM'].startswith("win")
+    and not absolute_path.endswith("/")
+    and relative_path.endswith("/")
+):
+    absolute_path += "/"
 
 payload = server.payload.Payload("payload.php")
 payload['FILE'] = absolute_path

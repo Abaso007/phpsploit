@@ -24,8 +24,7 @@ class WebBrowser(str):
 
         if len(lst) < 2 or name == "disabled":
             if name not in lst + ["", "default"]:
-                raise ValueError("Can't bind to «%s». Valid choices: %s"
-                        % (name, lst_repr))
+                raise ValueError(f"Can't bind to «{name}». Valid choices: {lst_repr}")
             return str.__new__(cls, "disabled")
 
         try:
@@ -33,12 +32,10 @@ class WebBrowser(str):
                 name = webbrowser.get().name
             else:
                 webbrowser.get(name)
-        # another boring Mac OS/X case ..
         except AttributeError:
             return str.__new__(cls, "default")
         except:
-            raise ValueError("Can't bind to «%s». Valid choices: %s"
-                    % (name, lst_repr))
+            raise ValueError(f"Can't bind to «{name}». Valid choices: {lst_repr}")
         return str.__new__(cls, name)
 
     def _raw_value(self):
@@ -60,7 +57,7 @@ class WebBrowser(str):
         val = self._raw_value()
         if val == "disabled":
             print("[-] BROWSER is disabled, open the following URL manually:")
-            print("[-]   %s" % url)
+            print(f"[-]   {url}")
         else:
             browser = webbrowser.get(self._raw_value())
             # try to open url in new browser tab

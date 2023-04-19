@@ -39,6 +39,7 @@ AUTHOR:
     nil0x42 <http://goo.gl/kb2wf>
 """
 
+
 import sys
 import os
 import base64
@@ -64,10 +65,7 @@ else:
     arg2 = 2
     arglen = len(plugin.argv)
 
-if arglen == 3:
-    relpath = plugin.argv[arg2]
-else:
-    relpath = server.path.getcwd()
+relpath = plugin.argv[arg2] if arglen == 3 else server.path.getcwd()
 abspath = server.path.abspath(relpath)
 
 local_relpath = plugin.argv[arg1]
@@ -76,15 +74,15 @@ local_basename = os.path.basename(local_abspath)
 
 # check for errors
 if not os.path.exists(local_abspath):
-    sys.exit("Can't upload %s: No such file or directory" % local_abspath)
+    sys.exit(f"Can't upload {local_abspath}: No such file or directory")
 
 if not os.path.isfile(local_abspath):
-    sys.exit("Can't upload %s: Not a file" % local_abspath)
+    sys.exit(f"Can't upload {local_abspath}: Not a file")
 
 try:
     data = open(local_abspath, 'rb').read()
 except OSError as e:
-    sys.exit("Can't upload %s: %s" % (e.filename, e.strerror))
+    sys.exit(f"Can't upload {e.filename}: {e.strerror}")
 
 # send the payload (twice if needed)
 payload = server.payload.Payload("payload.php")
@@ -106,5 +104,5 @@ for iteration in [1, 2]:
         else:
             continue
 
-    print("[*] Upload complete: %s -> %s" % (local_abspath, uploaded_file))
+    print(f"[*] Upload complete: {local_abspath} -> {uploaded_file}")
     sys.exit(0)

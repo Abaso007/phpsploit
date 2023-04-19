@@ -41,9 +41,9 @@ class Plugin:
         pass
 
     def __getattr__(self, attr):
-        errmsg = "type object '%s' has no attribute '%s'"
         if attr in dir(self):
             return getattr(plugins.current_plugin, attr)
+        errmsg = "type object '%s' has no attribute '%s'"
         raise AttributeError(errmsg % (self.__class__.__name__, str(attr)))
 
     def __dir__(self):

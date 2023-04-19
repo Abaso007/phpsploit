@@ -63,8 +63,7 @@ def load_credentials(raw_creds):
     """Return a dictionnary of credentials
     elements from raw format.
     """
-    result = {}
-    result['USER'] = raw_creds[:raw_creds.find('@')]
+    result = {'USER': raw_creds[:raw_creds.find('@')]}
     result['HOST'] = raw_creds[raw_creds.find('@')+1:]
     result['PASS'] = ''
     if '*' in raw_creds:
@@ -89,10 +88,9 @@ if plugin.argv[1].lower() == "connect":
     if plugin.argv[2].count('@') != 1:
         sys.exit("Invalid connection credentials")
     raw_creds = plugin.argv[2]
-    if len(plugin.argv) > 3:
-        if plugin.argv[3] == "-p":
-            password = ' '.join(plugin.argv[4:])
-            raw_creds += '*' + password
+    if len(plugin.argv) > 3 and plugin.argv[3] == "-p":
+        password = ' '.join(plugin.argv[4:])
+        raw_creds += f'*{password}'
     creds = load_credentials(raw_creds)
     payload = server.payload.Payload("connect.php")
     payload.update(creds)
@@ -155,7 +153,7 @@ start_time = time.time()
 response = payload.send()
 end_time = time.time()
 
-elapsed_time = "(%s sec)" % str(round(end_time - start_time, 2))
+elapsed_time = f"({str(round(end_time - start_time, 2))} sec)"
 query_type = response[0]
 affected_rows = response[1]
 plural = '' if affected_rows == 1 else 's'
@@ -168,26 +166,13 @@ if query_type == "SET":
 
 # Query type: GET
 if affected_rows == 0:
-    print("[*] Empty set %s" % elapsed_time)
+    print(f"[*] Empty set {elapsed_time}")
     sys.exit(0)
 
 fields = response[2][0]
 rows = response[2][1:]
 
-if display_mode == "line":
-    field_space = len(max(fields, key=len))
-    fields = [(' ' * (field_space - len(x))) + x for x in fields]
-    header = "*************************** %d. row ***************************"
-    i = 1
-    for row in rows:
-        print(header % i)
-        j = 0
-        for field in fields:
-            print("%s: %s" % (field, sql_str_repr(row[j])))
-            j += 1
-        i += 1
-
-elif display_mode == "column":
+if display_mode == "column":
     columns = [[str(field)] for field in fields]
     for row in rows:
         for i in range(len(fields)):
@@ -205,6 +190,14 @@ elif display_mode == "column":
         print('| ' + (' | '.join(row)) + ' |')
     print(delimiter)
 
+elif display_mode == "line":
+    field_space = len(max(fields, key=len))
+    fields = [(' ' * (field_space - len(x))) + x for x in fields]
+    header = "*************************** %d. row ***************************"
+    for i, row in enumerate(rows, start=1):
+        print(header % i)
+        for j, field in enumerate(fields):
+            print(f"{field}: {sql_str_repr(row[j])}")
 msg = "%s row%s in set %s"
 print(msg % (affected_rows, plural, elapsed_time))
 sys.exit(0)

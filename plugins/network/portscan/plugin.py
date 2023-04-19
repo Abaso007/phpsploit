@@ -28,6 +28,7 @@ AUTHOR:
     Shiney <http://goo.gl/D6g4wl>
 """
 
+
 import sys
 import os
 import json
@@ -80,7 +81,7 @@ for elem in result:
     if len(elem) == 1:
         info = colorize("%Green", "open")
         if port_num in known_services.keys():
-            info += " (%s)" % known_services[port_num]
+            info += f" ({known_services[port_num]})"
     elif len(elem) == 3 and elem[1] != main_err[0]:
         info = colorize("%Red", elem[2])
     if info:

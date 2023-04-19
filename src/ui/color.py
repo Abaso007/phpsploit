@@ -91,11 +91,7 @@ def colorize(*args):
         return ''.join(result)
 
     # if only colors were requested, return a tuple of them
-    if not strings:
-        return tuple(result)
-
-    # else return a concatenated string:
-    return ''.join(result)
+    return ''.join(result) if strings else tuple(result)
 
 
 def decolorize(string):
@@ -118,9 +114,9 @@ def diff(old, new, display=True):
     if not isinstance(new, list):
         new = decolorize(str(new)).splitlines()
 
-    line_types = {' ': '%Reset', '-': '%Red', '+': '%Green', '?': '%Pink'}
-
     if display:
+        line_types = {' ': '%Reset', '-': '%Red', '+': '%Green', '?': '%Pink'}
+
         for line in difflib.Differ().compare(old, new):
             if line.startswith('?'):
                 continue

@@ -17,6 +17,7 @@ AUTHOR:
     Jose <https://twitter.com/jnazario>
 """
 
+
 import itertools
 
 from api import plugin
@@ -40,11 +41,7 @@ WINDOWS_FILES = {'aws': [".aws\\credentials",],
                             "\\AppData\\Roaming\\gcloud\\access_tokens.db"],
                  'azure': [".azure\\accessTokens.json", ".azure\\azureProfile.json"]}
 
-if environ['PLATFORM'].startswith("win"):
-    FILES = WINDOWS_FILES
-else:
-    FILES = UNIX_FILES
-
+FILES = WINDOWS_FILES if environ['PLATFORM'].startswith("win") else UNIX_FILES
 if opt["platform"]:
     SEARCH_FOR = FILES[opt["platform"]]
 else:

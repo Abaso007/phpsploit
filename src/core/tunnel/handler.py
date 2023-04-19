@@ -134,7 +134,7 @@ class Request:
         # sent via multiple requests, if no writeable tmpdir is known, the
         # user will be asked to manually determine a writeable directory
         # on the self.load_multipart() function.
-        self.tmpfile = '/' + str(uuid.uuid4())
+        self.tmpfile = f'/{str(uuid.uuid4())}'
         if "WRITEABLE_TMPDIR" in session.Env.keys():
             self.tmpdir = session.Env["WRITEABLE_TMPDIR"] + self.tmpfile
         else:
@@ -185,9 +185,7 @@ class Request:
     def other_method(self):
         """returns the inverse of the current default method"""
 
-        if self.default_method == 'GET':
-            return 'POST'
-        return 'GET'
+        return 'POST' if self.default_method == 'GET' else 'GET'
 
     def can_add_headers(self, headers):
         """check if the size of the specified headers list
@@ -204,7 +202,7 @@ class Request:
         """wrap unencoded payload within self.delim
         """
         php_payload = php_payload.rstrip(';')
-        echo_delim = 'echo "%s";' % self.delim
+        echo_delim = f'echo "{self.delim}";'
         return echo_delim + php_payload + echo_delim
 
     def decapsulate(self, response):
@@ -212,10 +210,7 @@ class Request:
         """
         response = response.read()
         chunks = response.split(self.delim.encode(), 2)
-        if len(chunks) == 3:
-            return chunks[1]
-        return None
-        raise NoPayloadInResponse(response)
+        return chunks[1] if len(chunks) == 3 else None
 
     def load_multipart(self):
         """enable the multi-request payload capability.
@@ -233,13 +228,13 @@ class Request:
         confirm.skip_interrupt = False
         while not self.tmpdir:
             response = ask_dir()
-            if confirm("Use '%s' as writeable directory ?" % response):
+            if confirm(f"Use '{response}' as writeable directory ?"):
                 self.tmpdir = response + self.tmpfile
 
         if not self.multipart_file:
             self.multipart_file = payload.py2php(self.tmpdir)
-            self.multipart_file = "$f=%s;" % self.multipart_file
-            multipart = dict()
+            self.multipart_file = f"$f={self.multipart_file};"
+            multipart = {}
             for name, phpval in self.multipart.items():
                 multipart[name] = self.multipart_file + phpval
                 if name in ['starter', 'sender']:
@@ -253,10 +248,10 @@ class Request:
         formats the final payload if necessary before executing it.
 
         """
-        decoder = decoder % "$x"
         template = self.forwarder_template[method]
         template = template.replace('%%PASSKEY%%', self.passkey)
 
+        decoder = decoder % "$x"
         raw_forwarder = template % decoder
         b64_forwarder = base64.b64encode(raw_forwarder.encode()).decode()
         # here we delete the ending "=" from base64 payload
@@ -281,35 +276,25 @@ class Request:
         # setting and contains non alpha numeric chars (aka + or /),
         # then warn the user in case of bad http response.
         if "'%s'" not in hdr_payload and \
-           '"%s"' not in hdr_payload and \
-           not b64_forwarder.isalnum():
+               '"%s"' not in hdr_payload and \
+               not b64_forwarder.isalnum():
             # create a visible sample of the effective b64 payload
             len_third = float(len(forwarder) / 3)
             len_third = int(round(len_third + 0.5))
             sample_sep = colorize("%Reset", "\n[*] ", "%Cyan")
             lines = [''] + self.split_len(forwarder, len_third)
-            err = ("[*] do not enquotes the base64 payload which"
-                   " contains non alpha numeric chars (+ or /),"
-                   " blocking execution:" + sample_sep.join(lines))
+            err = f"[*] do not enquotes the base64 payload which contains non alpha numeric chars (+ or /), blocking execution:{sample_sep.join(lines)}"
 
-        # if server is running PHP >=8, non-quoted literal won't be
-        # interpreted as a string, leading to impossibility to
-        # execute phpsploit unless quotes are added to the payload:
         elif "'%s'" not in hdr_payload and \
-                '"%s"' not in hdr_payload:
+                    '"%s"' not in hdr_payload:
             len_third = float(len(forwarder) / 3)
             len_third = int(round(len_third + 0.5))
             sample_sep = colorize("%Reset", "\n[*] ", "%Cyan")
             lines = [''] + self.split_len(forwarder, len_third)
-            err = ("[*] doesn't quotes base64 payload, and if"
-                   " target runs on PHP>=8, execution will fail"
-                   " (GH Issue #168):" + sample_sep.join(lines))
+            err = f"[*] doesn't quotes base64 payload, and if target runs on PHP>=8, execution will fail (GH Issue #168):{sample_sep.join(lines)}"
 
-        # if current request is not affected by previous case,
-        # request may still fail because the header containing the
-        # payload stager has quotes.
         elif '"' in hdr_payload or \
-             "'" in hdr_payload:
+                 "'" in hdr_payload:
             err = ("[*] contains quotes, and some http servers & firewalls"
                    " escape them in request headers.")
 
@@ -338,7 +323,7 @@ class Request:
                 except:
                     base += 1
                     char = letters[x-26]
-                header_name = "zz" + letters[base] + char
+                header_name = f"zz{letters[base]}{char}"
                 result.append(header_name)
             return result
 
@@ -362,7 +347,7 @@ class Request:
         payload data with PASSKEY as variable name
         """
         post_data = urllib.parse.urlencode({self.passkey: data})
-        post_data += "&" + session.Conf.REQ_POST_DATA()
+        post_data += f"&{session.Conf.REQ_POST_DATA()}"
         return post_data
 
     def build_single_request(self, method, php_payload):
@@ -494,7 +479,7 @@ class Request:
             [  ( {"User-Agent":"firefox", {"Accept":"plain"}, None ),
                ( {"User-Agent":"ie"}, {"PostVarName":"PostDATA"} )    ]
         """
-        builder_name = "build_%s_request" % mode
+        builder_name = f"build_{mode}_request"
         if hasattr(self, builder_name):
             builder = getattr(self, builder_name)
             return builder(method, php_payload)
@@ -526,7 +511,6 @@ class Request:
             # if it works, then self.is_first_request bool() is no more True
             self.is_first_request = False
 
-        # treat errors if request failed
         except urllib.error.HTTPError as e:
             # import pprint
             # pprint.pprint(e)
@@ -542,7 +526,7 @@ class Request:
                 err = err[15:-1]
                 if err.startswith('[Errno '):
                     err = err[(err.find(']') + 2):]
-                err = 'Request error: ' + err
+                err = f'Request error: {err}'
             response['error'] = err
         except KeyboardInterrupt:
             response['error'] = 'HTTP Request interrupted'
@@ -559,10 +543,9 @@ class Request:
         error = ''
         data = data.replace(b'<br />', b'\n')  # html NewLines to Ascii
         # get a list of non-empty data lines
-        lines = list()
+        lines = []
         for line in data.split(b'\n'):
-            line = line.strip()
-            if line:
+            if line := line.strip():
                 lines.append(line)
         # extract errors from data
         for line in lines:
@@ -575,7 +558,7 @@ class Request:
                 line = re.sub(r' \[<a.*?a>\]', '', line)  # remove html link tag
                 line = re.sub('<.*?>', '', line)  # remove other html tags
                 line = line.replace(':  ', ': ')  # format double spaces
-                line = ' in '.join(line.split(' in ')[0:-1])  # del line info
+                line = ' in '.join(line.split(' in ')[:-1])
                 error += 'PHP Error: %s\n' % line  # add erro line to return
         return error.strip()
 
@@ -596,7 +579,7 @@ class Request:
         # if the is more than one possible target, display the one used for
         # this request(s). Also print if connecting through `exploit` cmd
         if self.is_first_payload or len(session.Conf.TARGET.choices()) > 1:
-            print("[*] Sending payload to %s ..." % self.target_obj)
+            print(f"[*] Sending payload to {self.target_obj} ...")
 
         self.response = None
         self.response_error = None
@@ -667,14 +650,14 @@ class Request:
         # load the multipart module if required
         if 'multipart' in mode.values():
             try:
-                print('[*] Large payload: %s bytes' % php_payload.length)
+                print(f'[*] Large payload: {php_payload.length} bytes')
                 self.load_multipart()
             except KeyboardInterrupt:
                 print('')
                 raise BuildError('Payload construction aborted')
 
         # build both methods necessary requests
-        request = dict()
+        request = {}
         for m in self.methods:
             sys.stdout.write('\rBuilding %s method...\r' % m)
             sys.stdout.flush()
@@ -688,34 +671,28 @@ class Request:
             raise BuildError('REQ_* settings are too small')
 
         # give user choice for what method to use
-        self.choices = list()
+        self.choices = []
 
         def choice(seq):
             """add arg to the choices list, and enlight it's output"""
             self.choices.append(seq[0].upper())
             hilightChar = colorize("%Bold", seq[0])
-            output = '[%s]%s' % (hilightChar, seq[1:])
+            output = f'[{hilightChar}]{seq[1:]}'
             return output
 
         # prepare user query for default method
-        query = "%s %s request%s will be sent, you also can " \
-                % (len(request[self.default_method]),
-                   choice(self.default_method),
-                   ['', 's'][len(request[self.default_method]) > 1])
-        end = "%s" % choice('Abort')
+        query = f"{len(request[self.default_method])} {choice(self.default_method)} request{['', 's'][len(request[self.default_method]) > 1]} will be sent, you also can "
+        end = f"{choice('Abort')}"
 
         # add other method to user query if available
         if request[self.other_method()]:
-            query += "send %s %s request%s or " \
-                     % (len(request[self.other_method()]),
-                        choice(self.other_method()),
-                        ['', 's'][len(request[self.other_method()]) > 1])
-        # or report that the other method has been disabled
+            query += f"send {len(request[self.other_method()])} {choice(self.other_method())} request{['', 's'][len(request[self.other_method()]) > 1]} or "
         else:
-            print('[-] %s method disabled:' % self.other_method() +
-                  ' The REQ_* settings are too restrictive')
+            print(
+                f'[-] {self.other_method()} method disabled: The REQ_* settings are too restrictive'
+            )
 
-        query += end + ': '  # add the Abort choice
+        query += f'{end}: '
         self.choices.append(None)  # it makes sure the list length is >= 3
 
         # loop for user input choice:
@@ -762,7 +739,7 @@ class Request:
             curReqNum += 1  # don't belive the fact that humans count from 1 !
             numOfReqs = str(len(multiReqLst) + 1)
             curReqNum = str(curReqNum).zfill(len(numOfReqs))
-            statusMsg = "Sending request %s of %s" % (curReqNum, numOfReqs)
+            statusMsg = f"Sending request {curReqNum} of {numOfReqs}"
             sys.stdout.write('\r[*] %s' % statusMsg)
             sys.stdout.flush()
 
@@ -812,9 +789,7 @@ class Request:
 
         # treat the last or single request
         response = self.send_single_request(lastRequest)
-        if response['error']:
-            return response['error']
-        return response
+        return response['error'] if response['error'] else response
 
     def Read(self, response):
         """Main request Reader
@@ -856,8 +831,7 @@ class Request:
         try:
             response = payload.php2py(b_response)
         except Exception as e:
-            php_errors = self.get_php_errors(response['data'])
-            if php_errors:
+            if php_errors := self.get_php_errors(response['data']):
                 return php_errors
             raise e
 

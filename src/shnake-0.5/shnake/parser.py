@@ -28,9 +28,7 @@ class LineBuffer:
 
     def readline(self):
         line = self.file.readline()
-        if not line:
-            return ""
-        return line.splitlines()[0] + "\n"
+        return line.splitlines()[0] + "\n" if line else ""
 
 
 
@@ -52,8 +50,8 @@ class Parser:
         while True:
             if not data:
                 data = buffer.readline()
-                if not data:
-                    return result
+            if not data:
+                return result
 
             line += 1;
             try:
@@ -64,11 +62,11 @@ class Parser:
                     break
 
             except SyntaxWarning as error:
-                addline = buffer.readline()
-                if not addline:
-                    raise error
-                data += addline
+                if addline := buffer.readline():
+                    data += addline
 
+                else:
+                    raise error
         return result
 
 

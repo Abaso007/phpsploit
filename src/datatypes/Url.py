@@ -21,7 +21,7 @@ class Url(str):
         try:
             components = list(re.match(cls._match_regexp, url).groups())
         except:
-            raise ValueError('«%s» is not a valid URL Link' % url)
+            raise ValueError(f'«{url}» is not a valid URL Link')
 
         defaults = ['http', '', '80', '/', '']
         if components[0] and components[0].lower() == 'https':
@@ -32,7 +32,7 @@ class Url(str):
 
         url = "{}://{}:{}{}".format(*tuple(components))
         if components[4]:
-            url += "?" + components[4]
+            url += f"?{components[4]}"
 
         return str.__new__(cls, url)
 
@@ -49,6 +49,15 @@ class Url(str):
         return self._raw_value()
 
     def __str__(self):
-        return colorize('%Cyan', self.scheme, '://', '%BoldWhite', self.host,
-                        '%BasicCyan', ':', self.port, self.path,
-                        ("?" + self.query if self.query else ""))
+        return colorize(
+            '%Cyan',
+            self.scheme,
+            '://',
+            '%BoldWhite',
+            self.host,
+            '%BasicCyan',
+            ':',
+            self.port,
+            self.path,
+            f"?{self.query}" if self.query else "",
+        )

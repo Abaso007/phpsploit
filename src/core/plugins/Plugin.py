@@ -36,8 +36,8 @@ class Plugin:
         try:
             Path(path, mode='drx')()
         except ValueError as e:
-            print("[#] Couldn't load plugin: «%s»" % self.path)
-            print("[#]     Plugin directory error: %s" % e)
+            print(f"[#] Couldn't load plugin: «{self.path}»")
+            print(f"[#]     Plugin directory error: {e}")
             print("[#] ")
             raise BadPlugin
 
@@ -48,19 +48,19 @@ class Plugin:
         try:
             script = Path(self.path, "plugin.py", mode='fr').read()
         except ValueError as e:
-            print("[#] Couldn't load plugin: «%s»" % self.path)
-            print("[#]     File error on plugin.py: %s" % e)
+            print(f"[#] Couldn't load plugin: «{self.path}»")
+            print(f"[#]     File error on plugin.py: {e}")
             print("[#] ")
             raise BadPlugin
         if not script.strip():
-            print("[#] Couldn't load plugin: «%s»" % self.path)
+            print(f"[#] Couldn't load plugin: «{self.path}»")
             print("[#]     File plugin.py is empty")
             print("[#] ")
             raise BadPlugin
         try:
             code = compile(script, "", "exec")
         except BaseException as e:
-            print("[#] Couldn't compile plugin: «%s»" % self.path)
+            print(f"[#] Couldn't compile plugin: «{self.path}»")
             e = traceback.format_exception(type(e), e, e.__traceback__)
             for line in "".join(e).splitlines():
                 print(colorize("[#] ", "%Red", line))
@@ -85,22 +85,22 @@ class Plugin:
                 lines = self.help.splitlines()
                 if len(lines) > 1 and str(retval) == self.help:
                     print()
-                    print("[*] %s: %s" % (self.name, lines.pop(0)))
+                    print(f"[*] {self.name}: {lines.pop(0)}")
                     for line in lines:
                         if line == line.lstrip():
                             line = colorize("%BoldWhite", line)
                         print(line)
                     print()
                 else:
-                    print("[-] %s: %s" % (self.name, retval))
+                    print(f"[-] {self.name}: {retval}")
                 retval = 1
             return retval
         except server.payload.PayloadError as err:
-            print("[-] %s: %s" % (self.name, err))
+            print(f"[-] {self.name}: {err}")
             return 64
         except BaseException as err:
             msg = "Python runtime error (exception occured)"
-            print("[-] %s: %s:" % (self.name, msg))
+            print(f"[-] {self.name}: {msg}:")
             raise err
         return 0
 
@@ -112,7 +112,7 @@ class ExecPlugin:
     _instance_id = 0
 
     def __init__(self, plugin):
-        script_path = os.path.join(plugin.path, self.filename + ".py")
+        script_path = os.path.join(plugin.path, f"{self.filename}.py")
         sys.path.insert(0, plugin.path)
         try:
             self.exec_module(script_path)

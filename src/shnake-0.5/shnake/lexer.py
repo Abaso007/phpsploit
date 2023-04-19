@@ -132,7 +132,7 @@ class Lexer:
                 try:
                     lineNr = int(re.findall(r"line:(\d+)", err)[0])
                     lineNr += line - 1
-                    err = re.sub(r"line:(\d+)", "line:"+str(lineNr), err)
+                    err = re.sub(r"line:(\d+)", f"line:{lineNr}", err)
                 except:
                     pass
                 raise SyntaxError(err % char)

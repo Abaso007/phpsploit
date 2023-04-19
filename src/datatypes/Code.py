@@ -10,6 +10,9 @@ except ImportError:
 
 def Code(language):
 
+
+
+
     class ColoredCode(str):
         """Piece of source code. (extends str)
         Takes a string representing a portion of source code.
@@ -39,10 +42,11 @@ def Code(language):
 
         def __str__(self):
             string = self._code_value()
-            if not USE_PYGMENTS:
-                return string
-            return pygments.highlight(string,
-                                      self.lexer,
-                                      self.formatter).strip()
+            return (
+                pygments.highlight(string, self.lexer, self.formatter).strip()
+                if USE_PYGMENTS
+                else string
+            )
+
 
     return ColoredCode

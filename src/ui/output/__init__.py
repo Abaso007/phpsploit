@@ -25,9 +25,7 @@ def colors() -> int:
     """
     if not isatty():
         return 0
-    if "TERM" in os.environ and "256" in os.environ["TERM"]:
-        return 256
-    return 8
+    return 256 if "TERM" in os.environ and "256" in os.environ["TERM"] else 8
 
 
 def size(fallback=(80, 24)) -> tuple:

@@ -99,15 +99,13 @@ class AbstractLineBuffer(ABC):
         if type(value) is not str: # pylint: disable=unidiomatic-typecheck
             self.file = value[0]
             self.buffer = value[1]
-        # if value is a 'file://' string
         elif value[7:] and value[:7].lower() == "file://":
             self.file = utils.path.truepath(value[7:])
             try:
                 with open(self.file, 'r') as file:
                     self.buffer = file.read()
             except OSError:
-                raise ValueError("not a readable file: «%s»" % self.file)
-        # if value is just a string
+                raise ValueError(f"not a readable file: «{self.file}»")
         else:
             self.file = None
             self.buffer = value
@@ -119,9 +117,7 @@ class AbstractLineBuffer(ABC):
         return called *usable-value
         """
         usable_value = self._validator(self.buffer)
-        if call and callable(usable_value):
-            return usable_value()
-        return usable_value
+        return usable_value() if call and callable(usable_value) else usable_value
 
     @abstractmethod
     def __str__(self):
@@ -177,7 +173,7 @@ class AbstractLineBuffer(ABC):
             return self.file
         if item in [1, "buffer"]:
             return self.buffer
-        raise IndexError(self.__class__.__name__+" index out of range")
+        raise IndexError(f"{self.__class__.__name__} index out of range")
 
     def __getattribute__(self, name):
         """automatically update self.buffer from self.file
@@ -245,7 +241,7 @@ class MultiLineBuffer(AbstractLineBuffer):
         obj_id = self.file
         if not obj_id:
             obj_id = hashlib.md5(self.buffer.encode('utf-8')).hexdigest()
-        lines_str = " (%s lines)" % len(self.buffer.splitlines())
+        lines_str = f" ({len(self.buffer.splitlines())} lines)"
         return colorize("%BoldBlack", "<", "%BoldBlue", "MultiLine",
                         "%BasicCyan", "@", "%Bold", obj_id, "%BasicBlue",
                         lines_str, "%BoldBlack", ">")
@@ -294,9 +290,7 @@ class RandLineBuffer(AbstractLineBuffer):
         return called *usable-value
         """
         obj = random.choice(self.choices())
-        if call and callable(obj):
-            return obj()
-        return obj
+        return obj() if call and callable(obj) else obj
 
     def __str__(self):
         """Get a colored string representation of current object

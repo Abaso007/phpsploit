@@ -34,6 +34,7 @@ AUTHOR:
     nil0x42 <http://goo.gl/kb2wf>
 """
 
+
 import sys
 import os
 import base64
@@ -62,11 +63,7 @@ else:
 
 relpath = plugin.argv[arg1]
 
-if arglen == 3:
-    local_relpath = plugin.argv[arg2]
-else:
-    local_relpath = os.getcwd()
-
+local_relpath = plugin.argv[arg2] if arglen == 3 else os.getcwd()
 abspath = server.path.abspath(relpath)
 local_abspath = utils.path.truepath(local_relpath)
 local_dirname = local_abspath
@@ -77,12 +74,12 @@ if not os.path.isdir(local_dirname):
     if os.path.isdir(local_dirname):
         local_basename = os.path.basename(local_abspath)
     else:
-        sys.exit("%s: Invalid local directory" % local_dirname)
+        sys.exit(f"{local_dirname}: Invalid local directory")
 
 try:
     Path(local_dirname, mode='w')
 except ValueError:
-    sys.exit("%s: Local directory not writable" % local_dirname)
+    sys.exit(f"{local_dirname}: Local directory not writable")
 
 local_abspath = os.path.join(local_dirname, local_basename)
 
@@ -92,7 +89,7 @@ if not force and os.path.exists(local_abspath):
         if ui.input.Expect(False)(question % local_abspath):
             sys.exit("File transfer aborted")
     else:
-        sys.exit("Local destination %s already exists" % local_abspath)
+        sys.exit(f"Local destination {local_abspath} already exists")
 
 payload = server.payload.Payload("payload.php")
 payload['FILE'] = abspath
@@ -103,6 +100,6 @@ file = Path(local_abspath)
 try:
     file.write(base64.b64decode(response), bin_mode=True)
 except ValueError as err:
-    sys.exit("Couldn't download file to %s: %s" % (local_abspath, err))
+    sys.exit(f"Couldn't download file to {local_abspath}: {err}")
 
-print("[*] Download complete: %s -> %s" % (abspath, local_abspath))
+print(f"[*] Download complete: {abspath} -> {local_abspath}")

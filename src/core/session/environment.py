@@ -54,15 +54,12 @@ class Environment(metadict.VarContainer):
             raise KeyError("illegal name: %r doesn't match %s"
                            % (name, WORD_TOKEN.pattern))
         if name in self.readonly and name in self.keys():
-            raise AttributeError("«{}» variable is read-only".format(name))
+            raise AttributeError(f"«{name}» variable is read-only")
         if value == "%%DEFAULT%%":
-            if name in self.defaults.keys():
-                value = self.defaults[name]
-                super().__setitem__(name, value)
-            else:
-                raise AttributeError("'%s' have no default value" % name)
-        else:
-            super().__setitem__(name, value)
+            if name not in self.defaults.keys():
+                raise AttributeError(f"'{name}' have no default value")
+            value = self.defaults[name]
+        super().__setitem__(name, value)
         if name not in self.defaults.keys():
             self.defaults[name] = self[name]
 

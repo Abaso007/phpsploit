@@ -1,5 +1,6 @@
 """Phpsploit Configuration Settings"""
 
+
 import os
 import sys
 import re
@@ -11,7 +12,7 @@ import linebuf
 
 from ui.color import colorize
 
-DEFAULT_HTTP_USER_AGENT = "file://" + core.BASEDIR + "data/user_agents.lst"
+DEFAULT_HTTP_USER_AGENT = f"file://{core.BASEDIR}data/user_agents.lst"
 
 
 # pylint: disable=too-many-instance-attributes
@@ -81,7 +82,7 @@ class Settings(metadict.VarContainer):
 
         name = name.replace('-', '_').upper()
         if not self._isattr(name):
-            raise KeyError("illegal name: '{}'".format(name))
+            raise KeyError(f"illegal name: '{name}'")
 
         if name[5:] and name[:5] == "HTTP_":
             # HTTP_* settings have a RandLineBuffer linebuf_type
@@ -89,9 +90,11 @@ class Settings(metadict.VarContainer):
             # validator = self._set_HTTP_header
             validator = str
             info = self._get_HTTP_header_info(name[5:])
-            # allow removal of custom HTTP_ settings, except for user agent.
-            if name != "HTTP_USER_AGENT" and \
-                    str(value).upper() in ["", "NONE", "%%DEFAULT%%"]:
+            if name != "HTTP_USER_AGENT" and validator(value).upper() in [
+                "",
+                "NONE",
+                "%%DEFAULT%%",
+            ]:
                 return super().__setitem__(name, value)
         elif name in self._settings.keys():
             linebuf_type = getattr(self._settings[name], "linebuf_type")
@@ -99,11 +102,11 @@ class Settings(metadict.VarContainer):
             default = getattr(self._settings[name], "default_value")
             info = getattr(self._settings[name], "__doc__")
         else:
-            raise KeyError("illegal name: '{}'".format(name))
+            raise KeyError(f"illegal name: '{name}'")
 
         # This fix creates a non-failing version of user agent default value
         if name == "HTTP_USER_AGENT" and \
-                (name not in self.keys() or value == "%%DEFAULT%%"):
+                    (name not in self.keys() or value == "%%DEFAULT%%"):
             if value == "%%DEFAULT%%":
                 value = DEFAULT_HTTP_USER_AGENT
             try:

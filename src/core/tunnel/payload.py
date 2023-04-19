@@ -20,9 +20,10 @@ def _phpserialize_recursive_dict2list(python_var):
     recursively converts all dict() generated object that
     can be converted into list().
     """
-    if isinstance(python_var, dict):
-        if list(python_var.keys()) == list(range(len(python_var))):
-            python_var = [python_var[x] for x in python_var]
+    if isinstance(python_var, dict) and list(python_var.keys()) == list(
+        range(len(python_var))
+    ):
+        python_var = [python_var[x] for x in python_var]
     if isinstance(python_var, dict):
         for key, val in python_var.items():
             python_var[key] = _phpserialize_recursive_dict2list(val)
@@ -41,8 +42,7 @@ def py2php(python_var):
                                     errors=encoding.default_errors)
     serialized = encoding.decode(serialized)
     encoded = Encode(serialized).php_loader()
-    raw_php_var = 'unserialize(%s)' % encoded
-    return raw_php_var
+    return f'unserialize({encoded})'
 
 
 def php2py(raw_php_var):
@@ -113,17 +113,16 @@ class Encode:
             gz_payload = codecs.encode(code, "zlib")
             gz_payload = base64.b64encode(gz_payload)
             gz_decoder = 'gzuncompress(base64_decode("%s"))'
-            if mode == 'compress':
-                self.compressed = True
-                self.data = gz_payload
-                self.decoder = gz_decoder
+        if mode == 'compress':
+            self.compressed = True
+            self.data = gz_payload
+            self.decoder = gz_decoder
         if mode != 'compress':
             self.data = base64.b64encode(code)
-        if mode == 'auto':
-            if len(gz_payload) < len(self.data):
-                self.data = gz_payload
-                self.decoder = gz_decoder
-                self.compressed = True
+        if mode == 'auto' and len(gz_payload) < len(self.data):
+            self.data = gz_payload
+            self.decoder = gz_decoder
+            self.compressed = True
         self.data = self.data.decode()
         self.rawlength = len(self.data)
         self.length = self._get_real_transport_length(self.data)
@@ -161,7 +160,7 @@ class Build:
 
     def __init__(self, php_payload, delim):
 
-        self.loaded_phplibs = list()
+        self.loaded_phplibs = []
 
         php_payload = self.encapsulate(php_payload, delim)
         php_payload = self._load_php_libs(php_payload)
@@ -185,7 +184,7 @@ class Build:
         code = code.rstrip(';') + ';'
         # delim encapsulation
         if delim:
-            echo_delim = 'echo "%s";' % delim
+            echo_delim = f'echo "{delim}";'
             code = echo_delim + code + echo_delim
         return code
 
@@ -211,13 +210,13 @@ class Build:
             else:
                 libname = line[(line.find('(') + 1):line.find(')')]
                 if line.count('(') != 1 or line.count(')') != 1 or not libname:
-                    raise BuildError('Invalid php import: ' + line.strip())
+                    raise BuildError(f'Invalid php import: {line.strip()}')
                 if libname not in self.loaded_phplibs:
                     try:
-                        file_path = 'api/php-functions/%s.php' % libname
+                        file_path = f'api/php-functions/{libname}.php'
                         lib = Path(core.COREDIR, file_path).phpcode()
                     except ValueError:
-                        raise BuildError('Php lib not found: ' + libname)
+                        raise BuildError(f'Php lib not found: {libname}')
                     result += self._load_php_libs(lib) + '\n'
                     self.loaded_phplibs.append(libname)
         return result

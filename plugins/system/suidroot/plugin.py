@@ -54,6 +54,7 @@ AUTHOR:
     nil0x42 <http://goo.gl/kb2wf>
 """
 
+
 import sys
 import os
 import base64
@@ -106,9 +107,9 @@ if plugin.argv[1] == '--create':
     sys.exit()
 
 
+msg = "Missing environment variable: %s: Use 'suidroot --create'"
 # On classic command pass, make sure the exploit is activated
 for var in SUIDROOT_ENV_VARS:
-    msg = "Missing environment variable: %s: Use 'suidroot --create'"
     if var not in environ:
         sys.exit(msg % var)
 
@@ -116,7 +117,7 @@ for var in SUIDROOT_ENV_VARS:
 command = ' '.join(plugin.argv[1:]).strip()
 # chdir to SUIDROOT_PWD before
 if not command.startswith(";"):
-    command = " ; " + command
+    command = f" ; {command}"
 command = 'cd ' + environ['SUIDROOT_PWD'] + command
 # token to make sure new pwd is known
 if not command.endswith(";"):

@@ -31,8 +31,7 @@ class Plugins(metadict.MetaDict):
         """Initalize a plugins list instance"""
         self.errors = 0
         self.blacklist = []
-        self.root_dirs = []
-        self.root_dirs.append(Path(core.BASEDIR, "plugins", mode='drx'))
+        self.root_dirs = [Path(core.BASEDIR, "plugins", mode='drx')]
         self.root_dirs.append(Path(core.USERDIR, "plugins", mode='drx'))
         self.current_plugin = DEFAULT_PLUGIN
         super().__init__()
@@ -61,9 +60,7 @@ class Plugins(metadict.MetaDict):
 
     def categories(self):
         """Get a list of existing plugin category names"""
-        categories = []
-        for plugin in self.values():
-            categories.append(plugin.category)
+        categories = [plugin.category for plugin in self.values()]
         categories.sort()
         return list(set(categories))
 
@@ -81,8 +78,8 @@ class Plugins(metadict.MetaDict):
             self.current_plugin = DEFAULT_PLUGIN
 
     def _log_error(self, path, errmsg, _type="plugin"):
-        print("[#] Couldn't load %s: «%s»" % (_type, path))
-        print("[#]     " + errmsg)
+        print(f"[#] Couldn't load {_type}: «{path}»")
+        print(f"[#]     {errmsg}")
         print("[#] ")
         self.errors += 1
 
@@ -127,7 +124,7 @@ class Plugins(metadict.MetaDict):
                         msg = "Name already taken by %r" % self[name].path
                         self._log_error(path, msg)
                     elif name in self.blacklist:
-                        msg = "Name already taken by `%s` command" % name
+                        msg = f"Name already taken by `{name}` command"
                         self._log_error(path, msg)
                     try:
                         self[name] = Plugin(path)

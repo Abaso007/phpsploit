@@ -57,11 +57,7 @@ class Stdout:
 
         # handle back logging
         self._backlog = StringIO()
-        if backlog:
-            self._has_backlog = True
-        else:
-            self._has_backlog = False
-
+        self._has_backlog = bool(backlog)
         # are colors supported ?
         self._has_colors = ui.output.colors()
 
@@ -171,7 +167,7 @@ class Stdout:
                 return line
 
         # remove dulpicate tags >>> "[!] [!] Foo" -> "[!] Foo"
-        while line[len(tag[1]):][0:len(tag[1])] == tag[1]:
+        while line[len(tag[1]) :][: len(tag[1])] == tag[1]:
             line = line[len(tag[1]):]
 
         # format line's tag with requested color style

@@ -262,7 +262,7 @@ class Path(str):
         if data.endswith('?>'):
             data = data[:-2]
         data = data.strip()
-        result = list()
+        result = []
         for line in data.splitlines():
             line = line.strip()
             if not line.startswith('//'):

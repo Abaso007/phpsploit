@@ -32,7 +32,7 @@ def sanitize(string):
 def lineify(string, maxlen):
     string = ' '.join(string.splitlines())
     strLen = len(string)
-    if not strLen > maxlen:
+    if strLen <= maxlen:
         return [string + (' ' * (maxlen - strLen))]
     words = string.split()
     result = []
@@ -46,7 +46,7 @@ def lineify(string, maxlen):
             if len(tempStr + word) > maxlen:
                 result.append(tempStr.strip())
                 tempStr = ''
-            tempStr += word + ' '
+            tempStr += f'{word} '
         if tempStr:
             result.append(tempStr.strip())
     return [x + (' ' * (maxlen - len(x))) for x in result]
@@ -57,15 +57,13 @@ def tablify(vals):
     for elem in vals:
         while len(elem) != maxLstLen:
             elem.append(' ' * len(elem[0]))
-    lines = {}
-    for n in range(maxLstLen):
-        lines[n] = []
+    lines = {n: [] for n in range(maxLstLen)}
     for elem in vals:
         for n in range(maxLstLen):
             lines[n].append(elem[n])
     result = ''
-    for n in lines:
-        result += '| ' + (' | '.join(lines[n])) + ' |\n'
+    for n, value in lines.items():
+        result += '| ' + ' | '.join(value) + ' |\n'
         footer_fill = [('-' * len(x)) for x in lines[n]]
         footer = '+-' + ('-+-'.join(footer_fill)) + '-+'
     return result + footer
@@ -126,10 +124,7 @@ if len(plugin.argv) == 1:
                 maxLen -= 3
 
             def allInts(intsLst):
-                res = 0
-                for i in intsLst:
-                    res += i
-                return res
+                return sum(intsLst)
 
             if allInts(lens) > maxLen:
                 max_of_each = [max(x.split(' '), key=len) for x in lists[0]]

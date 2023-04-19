@@ -53,6 +53,6 @@ def get_smart_date(value):
         datetime.datetime.strptime(result, python_fmt)
     except ValueError as err:
         if python_fmt in str(err):
-            err = "format must be %s" % human_fmt
+            err = f"format must be {human_fmt}"
         raise ValueError("%r: %s" % (value, err))
     return result

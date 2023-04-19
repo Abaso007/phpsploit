@@ -49,6 +49,7 @@ AUTHOR:
     nil0x42 <http://goo.gl/kb2wf>
 """
 
+
 import sys
 
 from api import plugin
@@ -58,23 +59,14 @@ from api import environ
 if len(plugin.argv) < 2:
     sys.exit(plugin.help)
 
-if environ['PLATFORM'].startswith("win"):
-    cmd_sep = " & "
-else:
-    cmd_sep = " ; "
-
+cmd_sep = " & " if environ['PLATFORM'].startswith("win") else " ; "
 cmd_list = []
 
 # This small hack enables STDERR display on unix platforms
 if not environ['PLATFORM'].lower().startswith("win"):
     cmd_list.append('exec 2>&1')
 
-# Change directory to $PWD before commands execution
-cmd_list.append('cd ' + environ['PWD'])
-
-# Add commands (plugin arguments) to cmd_list
-cmd_list.append(" ".join(plugin.argv[1:]))
-
+cmd_list.extend(('cd ' + environ['PWD'], " ".join(plugin.argv[1:])))
 # Prepare payload
 payload = server.payload.Payload("payload.php")
 payload['CMD'] = cmd_sep.join(cmd_list).strip()

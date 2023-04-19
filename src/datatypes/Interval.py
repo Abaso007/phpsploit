@@ -32,13 +32,13 @@ class Interval(tuple):
             value = [value[0], value[0]]
 
         if len(value) != 2:
-            raise ValueError("Invalid format: %s" % rawval)
+            raise ValueError(f"Invalid format: {rawval}")
 
         try:
             value[0] = float(value[0])
             value[1] = float(value[1])
         except ValueError:
-            raise ValueError("Invalid float pair: %s" % rawval)
+            raise ValueError(f"Invalid float pair: {rawval}")
         value = tuple(sorted(value))
         return tuple.__new__(cls, value)
 

@@ -131,11 +131,7 @@ class Loader_V2_1_4(AbstractSessionLoader):
         # $PLATFORM
         result["PLATFORM"] = old_session["SRV"]["os"].split()[0].lower()
         if result["PLATFORM"] in ["unknow", "unknown", ""]:
-            if result["PATH_SEP"] == "\\":
-                result["PLATFORM"] = "windows"
-            else:
-                result["PLATFORM"] = "unix"
-
+            result["PLATFORM"] = "windows" if result["PATH_SEP"] == "\\" else "unix"
         return result
 
 

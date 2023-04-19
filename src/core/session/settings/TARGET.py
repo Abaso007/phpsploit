@@ -16,7 +16,7 @@ linebuf_type = linebuf.RandLineBuffer
 
 
 def validator(value):
-    if str(value).lower() in ["", "none"]:
+    if str(value).lower() in {"", "none"}:
         return default_value()
     else:
         return datatypes.Url(value)

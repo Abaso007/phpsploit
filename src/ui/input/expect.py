@@ -105,13 +105,10 @@ class Expect: # pylint: disable=too-few-public-methods
     def __call__(self, question=None):
 
         # use custom question, or fallback to the default one.
-        if question is not None:
-            question = str(question)
-        else:
-            question = self.question
+        question = str(question) if question is not None else self.question
         # auto prepend question magic tag: "[?]" (if non empty):
         if question:
-            question = "[?] " + question.lstrip()
+            question = f"[?] {question.lstrip()}"
 
         expect = self.expect
         default = ''
@@ -165,11 +162,7 @@ class Expect: # pylint: disable=too-few-public-methods
                 question = question.rstrip() + suffix
 
         # force timeout = 1 if not interactive:
-        if isatty():
-            timeout = self.timeout
-        else:
-            timeout = 1
-
+        timeout = self.timeout if isatty() else 1
         # ask loop
         while True:
             response = None
@@ -187,25 +180,25 @@ class Expect: # pylint: disable=too-few-public-methods
             except BaseException as e:
                 print()
                 # if skip interrupt, just reloop, otherwise, raise
-                if type(e) in (EOFError, KeyboardInterrupt):
-                    if self.skip_interrupt and isatty():
-                        continue
-                    else:
-                        raise e
-                # if timeout reached, use `default` as response
-                elif type(e) == TypeError:
-                    response = default
-                # normally raise unplanned exceptions
-                else:
+                if (
+                    type(e) in (EOFError, KeyboardInterrupt)
+                    and self.skip_interrupt
+                    and isatty()
+                ):
+                    continue
+                elif (
+                    type(e) in (EOFError, KeyboardInterrupt)
+                    and (not self.skip_interrupt or not isatty())
+                    or type(e) not in (EOFError, KeyboardInterrupt, TypeError)
+                ):
                     raise e
+                else:
+                    response = default
             signal.alarm(0)
 
             # if None is expected, any response is accepted
             if expect is None:
-                if default and not response:
-                    return str(default)
-                return response
-
+                return default if default and not response else response
             # use default response if not given
             if not response:
                 response = default

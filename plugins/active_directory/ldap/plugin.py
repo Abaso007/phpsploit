@@ -49,7 +49,7 @@ def print_node(node):
     for key, val in node.items():
         if isinstance(val, dict):
             del val['count']
-            line = "   %s :  %s" % (colorize('%Bold', "%20s" % key), ' | '.join(val.values()))
+            line = f"""   {colorize('%Bold', "%20s" % key)} :  {' | '.join(val.values())}"""
             print(line)
     print()
 
@@ -103,8 +103,6 @@ if plugin.argv[1].lower() == "list":
         if k == 'count':
             continue
         print_node(row)
-    pass
-
 # Search node
 if plugin.argv[1].lower() == "search":
     if len(plugin.argv) < 4:
@@ -123,6 +121,4 @@ if plugin.argv[1].lower() == "search":
         if k == 'count':
             continue
         print_node(row)
-    pass
-
 sys.exit(0)

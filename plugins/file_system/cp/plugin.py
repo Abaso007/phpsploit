@@ -30,6 +30,7 @@ AUTHOR:
     nil0x42 <http://goo.gl/kb2wf>
 """
 
+
 import sys
 
 from api import plugin
@@ -56,4 +57,4 @@ payload['DST'] = server.path.abspath(plugin.argv[dst_arg])
 
 src, dst = payload.send()
 
-print("Copy complete: '%s' -> '%s'" % (src, dst))
+print(f"Copy complete: '{src}' -> '{dst}'")

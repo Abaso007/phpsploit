@@ -58,12 +58,8 @@ class Shell(shnake.Shell):
         if tunnel:
             self.nocmd += " (use `run` plugin to run remote command)"
         # Reset backlog before each command except backlog
-        if self.bind_command:
-            if len(argv) == 1 and argv[0] == "exit":
-                # self.bind_command = None
-                pass
-            else:
-                argv.insert(0, self.bind_command)
+        if self.bind_command and (len(argv) != 1 or argv[0] != "exit"):
+            argv.insert(0, self.bind_command)
         if argv and argv[0] != "backlog":
             self.stdout.backlog = ""
         # Alias Handler
@@ -80,7 +76,7 @@ class Shell(shnake.Shell):
             print("[-]          please upgrade $TARGET with new $BACKDOOR")
             print("[-]          and run `session upgrade` when done.")
             print("")
-        print("[#] %s: Running..." % self.debug_cmdrepr(argv))
+        print(f"[#] {self.debug_cmdrepr(argv)}: Running...")
         return super().onecmd(argv)
 
     def postcmd(self, retval, argv):
@@ -332,8 +328,7 @@ class Shell(shnake.Shell):
             readline.remove_history_item(0)
             last -= 1
         first = last - count
-        if first < 1:
-            first = 1
+        first = max(first, 1)
         for i in range(first, last):
             cmd = readline.get_history_item(i)
             print("{:4d}  {:s}".format(i, cmd))
@@ -376,7 +371,7 @@ class Shell(shnake.Shell):
             self.interpret("help exploit")
             return False
 
-        print("[*] Current backdoor is: " + obj + "\n")
+        print(f"[*] Current backdoor is: {obj}" + "\n")
 
         if tunnel:
             m = ("[*] Use `set TARGET <VALUE>` to use another url as target."
@@ -425,11 +420,12 @@ class Shell(shnake.Shell):
             if tunnel:
                 keys.append("load")
             return [x for x in keys if x.startswith(text)]
-        if (len(argv) == 2 and line[-1] == " ") \
-                or (len(argv) == 3 and line[-1] != " "):
-            if argv[1] in ["save", "load", "diff"]:
-                if os.path.isfile(session.File):
-                    return [session.File]
+        if (
+            (len(argv) == 2 or len(argv) == 3 and line[-1] != " ")
+            and argv[1] in ["save", "load", "diff"]
+            and os.path.isfile(session.File)
+        ):
+            return [session.File]
         return []
 
     @staticmethod
@@ -612,11 +608,7 @@ class Shell(shnake.Shell):
         argv = line.split()
         if (len(argv) == 2 and line[-1] == " ") or len(argv) > 2:
             return []
-        result = []
-        for key in session.Conf.keys():
-            if key.startswith(text.upper()):
-                result.append(key)
-        return result
+        return [key for key in session.Conf.keys() if key.startswith(text.upper())]
 
     @staticmethod
     def do_set(argv):
@@ -684,9 +676,8 @@ class Shell(shnake.Shell):
             print(session.Conf(string))
             if string not in session.Conf:
                 string = "<VAR>"
-            print("[*] For detailed help, run `help set %s`" % string)
+            print(f"[*] For detailed help, run `help set {string}`")
 
-        # buffer edit mode
         elif argv[2] == "+":
             # `set <VAR> +`: use $EDITOR as buffer viewer in file mode
             if len(argv) == 3:
@@ -698,16 +689,14 @@ class Shell(shnake.Shell):
                     file_ext = "php"
                 elif isinstance(setting_obj, datatypes.ShellCmd):
                     file_ext = "sh"
-                buffer = Path(filename="%s.%s" % (file_name, file_ext))
+                buffer = Path(filename=f"{file_name}.{file_ext}")
                 buffer.write(session.Conf[argv[1]].buffer)
                 # try to edit it through $EDITOR, and update it
                 # if it has been modified.
                 if buffer.edit():
                     session.Conf[argv[1]] = buffer.read()
-            # `set <VAR> + "value"`: add value on setting possible choices
             else:
                 session.Conf[argv[1]] += " ".join(argv[3:])
-        # `set <VAR> "value"`: just change VAR's "value"
         else:
             session.Conf[argv[1]] = " ".join(argv[2:])
 
@@ -719,11 +708,7 @@ class Shell(shnake.Shell):
         argv = line.split()
         if (len(argv) == 2 and line[-1] == " ") or len(argv) > 2:
             return []
-        result = []
-        for key in session.Env:
-            if key.startswith(text.upper()):
-                result.append(key)
-        return result
+        return [key for key in session.Env if key.startswith(text.upper())]
 
     @staticmethod
     def do_env(argv):
@@ -792,11 +777,7 @@ class Shell(shnake.Shell):
         argv = line.split()
         if (len(argv) == 2 and line[-1] == " ") or len(argv) > 2:
             return []
-        result = []
-        for key in session.Alias.keys():
-            if key.startswith(text):
-                result.append(key)
-        return result
+        return [key for key in session.Alias.keys() if key.startswith(text)]
 
     def do_alias(self, argv):
         """Define command aliases
@@ -840,9 +821,9 @@ class Shell(shnake.Shell):
             session.Alias[argv[1]] = " ".join(argv[2:])
             exists = argv[1] in session.Alias
             if existed and not exists:
-                print("[*] `%s` alias correctly deleted." % argv[1])
-            elif existed and exists:
-                print("[-] `%s` alias correctly overridden." % argv[1])
+                print(f"[*] `{argv[1]}` alias correctly deleted.")
+            elif existed:
+                print(f"[-] `{argv[1]}` alias correctly overridden.")
             elif exists:
                 if argv[1] in self.get_names(self, "do_"):
                     print("[-] Warning: %r command overridden"
@@ -970,8 +951,8 @@ class Shell(shnake.Shell):
         def get_doc(cmd):
             """get lines from `cmd` docstring"""
             doc = ""
-            if hasattr(self, "do_" + cmd):
-                doc = getattr(self, "do_" + cmd).__doc__
+            if hasattr(self, f"do_{cmd}"):
+                doc = getattr(self, f"do_{cmd}").__doc__
             elif cmd in plugins:
                 doc = plugins[cmd].help
                 if doc.strip():
@@ -1018,8 +999,7 @@ class Shell(shnake.Shell):
             try:
                 doc = getattr(session.Conf, var).docstring
             except KeyError:
-                print("[-] %s: No such setting (run `set` to list settings)" \
-                        % var)
+                print(f"[-] {var}: No such setting (run `set` to list settings)")
                 return False
             print("\n[*] Help for '%s' setting\n" % var)
             return doc_help(doc.splitlines())
@@ -1030,9 +1010,9 @@ class Shell(shnake.Shell):
             if doc:
                 print("\n[*] %s: %s\n" % (argv[1], get_description(doc)))
                 # call help_COMMAND() or fallback to COMMAND's docstring
-                help_method = getattr(self, "help_" + argv[1], None)
+                help_method = getattr(self, f"help_{argv[1]}", None)
                 if callable(help_method):
-                    getattr(self, 'help_' + argv[1])()
+                    getattr(self, f'help_{argv[1]}')()
                 else:
                     if not doc_help(doc):
                         return False
@@ -1041,9 +1021,8 @@ class Shell(shnake.Shell):
                           "(run `alias %s` for + infos)"
                           % (argv[1], argv[1]))
                 return True
-            # fallback to alias display
             elif argv[1] in session.Alias:
-                return self.interpret("alias %s" % argv[1])
+                return self.interpret(f"alias {argv[1]}")
             print(self.nohelp % argv[1])
             return False
 
@@ -1058,7 +1037,7 @@ class Shell(shnake.Shell):
                 items = [p.name for p in items]
                 # rescale max_len in case of longer plugin names
                 max_len = max(max_len, len(max(items, key=len)))
-                full_help += [(category + " Plugins", items)]
+                full_help += [(f"{category} Plugins", items)]
         # adapt max_len if there are command aliases
         aliases = list(session.Alias.keys())
         if aliases:
@@ -1083,7 +1062,7 @@ class Shell(shnake.Shell):
                     description = session.Alias[cmd_name]
                 else:
                     description = get_description(get_doc(cmd_name))
-                print("    " + cmd_name + spacing + description)
+                print(f"    {cmd_name}{spacing}{description}")
             print('')
 
     # pylint: disable=invalid-name
@@ -1093,7 +1072,7 @@ class Shell(shnake.Shell):
         if isinstance(exception.errno, int):
             exception.args = (exception.strerror,)
         if exception.filename is not None:
-            exception.args += ("«{}»".format(exception.filename),)
+            exception.args += (f"«{exception.filename}»", )
         return exception
 
     @staticmethod

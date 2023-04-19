@@ -26,6 +26,7 @@ AUTHOR:
     nil0x42 <http://goo.gl/kb2wf>
 """
 
+
 import sys
 
 from api import plugin
@@ -38,7 +39,7 @@ try:
     mode = int(plugin.argv[1], 8)
     assert mode < 0o10000
 except:
-    sys.exit("invalid mode: '%s'" % plugin.argv[1])
+    sys.exit(f"invalid mode: '{plugin.argv[1]}'")
 
 relative_path = plugin.argv[2]
 absolute_path = server.path.abspath(relative_path)

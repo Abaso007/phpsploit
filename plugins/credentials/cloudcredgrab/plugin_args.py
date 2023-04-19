@@ -3,11 +3,8 @@ import ui.output
 
 
 def help_format_cloudcredgrab(prog):
-    kwargs = dict()
-    kwargs['width'] = ui.output.columns()
-    kwargs['max_help_position'] = 34
-    format = argparse.HelpFormatter(prog, **kwargs)
-    return (format)
+    kwargs = {'width': ui.output.columns(), 'max_help_position': 34}
+    return argparse.HelpFormatter(prog, **kwargs)
 
 def parse(args):
     parser = argparse.ArgumentParser(prog="cloudcredgrab", add_help=False, usage=argparse.SUPPRESS)

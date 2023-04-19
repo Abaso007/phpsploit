@@ -107,7 +107,7 @@ class Session(metadict.MetaDict):
     def __str__(self):
         """Get a nice string representation of current session
         """
-        title = "PhpSploit session dump ({})".format(self.File)
+        title = f"PhpSploit session dump ({self.File})"
         # deco = "\n" + colorize("%Blue", "=" * len(title)) + "\n"
         deco = "\n" + colorize("%Blue", "=" * 68) + "\n"
         data = deco + title + deco
@@ -137,12 +137,11 @@ class Session(metadict.MetaDict):
             if "Compat" not in data.keys():
                 data["Compat"] = {}
         except OSError as error:
-            if "not a gzipped file" in str(error).lower():
-                data = compat_session.load(file)
-                if not data:
-                    raise ValueError("Not a phpsploit session file")
-            else:
+            if "not a gzipped file" not in str(error).lower():
                 raise
+            data = compat_session.load(file)
+            if not data:
+                raise ValueError("Not a phpsploit session file")
         # get Session() obj from raw session value
         sess = self._obj_value(data, fatal_errors=fatal_errors)
         # bind new session's File to current file
@@ -294,16 +293,17 @@ class Session(metadict.MetaDict):
                         try:
                             obj[elem][key] = value
                         except Exception as error:
-                            item_repr = "session.%s.%s" % (elem, key)
-                            msg_prefix = "[-] Couldn't set %s" % item_repr
+                            item_repr = f"session.{elem}.{key}"
+                            msg_prefix = f"[-] Couldn't set {item_repr}"
                             if fatal_errors:
-                                print("%s:" % msg_prefix)
+                                print(f"{msg_prefix}:")
                                 raise
                             else:
-                                print("%s: %s" % (msg_prefix, error))
+                                print(f"{msg_prefix}: {error}")
                 else:
                     obj[elem] = new[elem]
             return obj
+
         obj = Session()
         obj = update_obj(obj, self._raw_value(self))
         if raw is not None:
@@ -328,11 +328,14 @@ class Session(metadict.MetaDict):
 
         # if file exists and differs from session's binded file,
         # then an user overwriting confirmation is required.
-        if ask_confirmation and os.path.exists(file):
-            if file != self.File or super().__getitem__("File") is None:
-                question = "File «{}» already exists, overwrite it ?"
-                if ui.input.Expect(False)(question.format(file)):
-                    raise Warning("The session was not saved")
+        if (
+            ask_confirmation
+            and os.path.exists(file)
+            and (file != self.File or super().__getitem__("File") is None)
+        ):
+            question = "File «{}» already exists, overwrite it ?"
+            if ui.input.Expect(False)(question.format(file)):
+                raise Warning("The session was not saved")
 
         # write it to the file
         self._history_update()

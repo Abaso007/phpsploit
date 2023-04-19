@@ -41,10 +41,9 @@ def validator(value):
         raise ValueError("only chars from set «a-Z0-9_» are allowed")
     if re.match('^zz[a-z]{2}$', value.lower()) or \
        value.lower().replace('_', '-') in reserved_headers:
-        raise ValueError("reserved header name: «{}»".format(value))
+        raise ValueError(f"reserved header name: «{value}»")
     return value
 
 
 def default_value():
-    raw_value = "phpSpl01t"
-    return raw_value
+    return "phpSpl01t"

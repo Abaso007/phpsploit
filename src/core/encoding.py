@@ -27,8 +27,7 @@ def encode(str_obj, encoding=default_encoding, errors=default_errors):
     If not set, `encoding` defaults to module's `default_encoding` variable.
     If not set, `errors` defaults to module's `default_errors` variable.
     """
-    bytes_obj = str_obj.encode(encoding, errors)
-    return bytes_obj
+    return str_obj.encode(encoding, errors)
 
 
 def decode(bytes_obj, encoding=default_encoding, errors=default_errors):
@@ -37,5 +36,4 @@ def decode(bytes_obj, encoding=default_encoding, errors=default_errors):
     If not set, `encoding` defaults to module's `default_encoding` variable.
     If not set, `errors` defaults to module's `default_errors` variable.
     """
-    str_obj = bytes_obj.decode(encoding, errors)
-    return str_obj
+    return bytes_obj.decode(encoding, errors)

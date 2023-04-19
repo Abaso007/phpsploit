@@ -36,6 +36,7 @@ AUTHOR:
     nil0x42 <http://goo.gl/kb2wf>
 """
 
+
 import sys
 
 from api import plugin
@@ -45,11 +46,7 @@ from api import environ
 if len(plugin.argv) > 2:
     sys.exit(plugin.help)
 
-if len(plugin.argv) == 2:
-    relative_path = plugin.argv[1]
-else:
-    relative_path = environ['HOME']
-
+relative_path = plugin.argv[1] if len(plugin.argv) == 2 else environ['HOME']
 absolute_path = server.path.abspath(relative_path)
 
 payload = server.payload.Payload("payload.php")

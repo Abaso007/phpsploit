@@ -70,8 +70,8 @@ class ByteSize(int):
         number = str(round(number, precision)).rstrip('0').rstrip('.')
 
         byteNames = ('bytes', 'KiB', 'MiB', 'GiB', 'TiB')
-        result = number + " " + byteNames[index]
+        result = f"{number} {byteNames[index]}"
         if index > 0:
-            result += colorize(" ", '%DimWhite', "(%s bytes)" % self_str)
+            result += colorize(" ", '%DimWhite', f"({self_str} bytes)")
 
         return result

@@ -51,8 +51,9 @@ class Tunnel:
                                 "sure you want to reset environment "
                                 "as shown above ?")
                     if ui.input.Expect(False)(question):
-                        print("[-] %s (%s): Exploitation aborted"
-                              % (tmp_session.Env.ADDR, tmp_session.Env.HOST))
+                        print(
+                            f"[-] {tmp_session.Env.ADDR} ({tmp_session.Env.HOST}): Exploitation aborted"
+                        )
                         self.close()
                         return False
                     print("[*] Environment correctly reset")
@@ -63,12 +64,10 @@ class Tunnel:
             print("[*] Shell obtained by PHP (%s -> %s)\n"
                   % (session.Env.CLIENT_ADDR,
                      session.Env.ADDR))
-            print("Connected to %s server (%s)"
-                  % (session.Env.PLATFORM.capitalize(),
-                     session.Env.HOST))
-            print("running PHP %s on %s"
-                  % (session.Env.PHP_VERSION,
-                     session.Env.HTTP_SOFTWARE))
+            print(
+                f"Connected to {session.Env.PLATFORM.capitalize()} server ({session.Env.HOST})"
+            )
+            print(f"running PHP {session.Env.PHP_VERSION} on {session.Env.HTTP_SOFTWARE}")
             self.active = True
             return True
 

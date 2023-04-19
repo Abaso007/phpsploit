@@ -71,7 +71,7 @@ class MetaDict(dict):
             if self.__doc__:
                 self.title = self.__doc__.splitlines()[0].strip()
             else:
-                self.title = "%s() object" % self.__class__.__name__
+                self.title = f"{self.__class__.__name__}() object"
         else:
             self.title = str(title)
 
@@ -112,7 +112,7 @@ class MetaDict(dict):
         if sing_title.endswith("s"):
             sing_title = sing_title[:-1]
         if not self.keys():
-            raise ValueError("No such " + sing_title)
+            raise ValueError(f"No such {sing_title}")
         keys = [k for k in self.keys() if k.startswith(pattern)]
         if not keys:
             msg = "No {} matching «{}»"
@@ -164,10 +164,8 @@ class VarContainer(MetaDict):
         It also raises a KeyError if value is not a valid WORD_TOKEN
         """
         if isinstance(value, (str, type(None))) and \
-                str(value).upper() in self.item_deleters:
-            if name not in self.keys():
-                return None
-            return self.__delitem__(name)
+                    str(value).upper() in self.item_deleters:
+            return None if name not in self.keys() else self.__delitem__(name)
         if not WORD_TOKEN.fullmatch(name):
             raise KeyError("illegal name: %r doesn't match %s"
                            % (name, WORD_TOKEN.pattern))

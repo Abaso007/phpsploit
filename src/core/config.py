@@ -70,13 +70,13 @@ class UserDir: # pylint: disable=too-few-public-methods
         # create default $USERDIR/config if it doesn't exist
         config = utils.path.truepath(self.path, "config")
         if not os.path.isfile(config):
-            with open(BASEDIR + "data/config/config") as file:
+            with open(f"{BASEDIR}data/config/config") as file:
                 default_config = file.read()
             with open(config, 'w') as file:
                 file.write(default_config)
 
         # always override $USERDIR/README
-        with open(BASEDIR + "data/config/README") as file:
+        with open(f"{BASEDIR}data/config/README") as file:
             readme = file.read()
         with open(utils.path.truepath(self.path, "README"), "w") as file:
             file.write(readme)
